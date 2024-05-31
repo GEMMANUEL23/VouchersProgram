@@ -1,0 +1,72 @@
+﻿@page "/"
+@using VouchersProgram.Data.Models
+@using VouchersProgram.Data.Services
+@using VouchersProgram.Data.Interfaces
+@using Syncfusion.Blazor.Navigations
+@inject NavigationManager NavigationManager
+@inject IVWS_HeaderService VWS_HeaderService
+
+
+<h1>VOUCHES</h1>
+
+<SfGrid DataSource="@vsheader"
+        Toolbar="Toolbaritems"
+        AllowResizing="true">
+    <GridColumns>
+        <GridColumn Field="@nameof(VWS_Header.VSHeaderID)"
+                    HeaderText="#"
+                    TextAlign="@TextAlign.Center"
+                    Width="15">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Header.DeparmentName)"
+                    HeaderText="Deparment"
+                    TextAlign="@TextAlign.Center"
+                    Width="25">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Header.TeamName)"
+                    HeaderText="Team"
+                    TextAlign="@TextAlign.Center"
+                    Width="25">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Header.VSHeaderVoucherNumber)"
+                    HeaderText="Voucher #"
+                    TextAlign="@TextAlign.Center"
+                    Width="20">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Header.SupplierName)"
+                    HeaderText="Supplier"
+                    TextAlign="@TextAlign.Center"
+                    Width="50">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Header.SupplierPayToName)"
+                    HeaderText="Pay To Name"
+                    TextAlign="@TextAlign.Center"
+                    Width="50">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Header.PayMethDescription)"
+                    HeaderText="Pay Method"
+                    TextAlign="@TextAlign.Center"
+                    Width="40">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Header.VoucherTotal)"
+                    HeaderText="Amount"
+                    TextAlign="@TextAlign.Center"
+                    Width="40">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Header.CurrencySymbol)"
+                    HeaderText="C Type"
+                    TextAlign="@TextAlign.Center"
+                    Width="15">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Header.VSHeaderRequestedBy)"
+                    HeaderText="Created By"
+                    TextAlign="@TextAlign.Center"
+                    Width="50">
+        </GridColumn>
+    </GridColumns>
+    <GridEvents RowSelected="RowSelectHandler" 
+         OnToolbarClick="ToolbarClickHandler" TValue="VWS_Header"></GridEvents>
+</SfGrid>
+
+<WarningPage @ref="Warning" WarningHeaderMessage="@WarningHeaderMessage" WarningContentMessage="@WarningContentMessage" />
+

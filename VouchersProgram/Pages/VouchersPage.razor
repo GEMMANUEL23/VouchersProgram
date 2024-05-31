@@ -1,0 +1,284 @@
+﻿@page "/voucher/{VSHeaderID:int}"
+@using VouchersProgram.Data.Models
+@using VouchersProgram.Data.Services
+@using VouchersProgram.Data.Interfaces
+@using System
+@using Syncfusion.Blazor.Navigations
+@using System.Collections.Generic
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject IVWS_HeaderService VWS_HeaderService
+@inject ISupplierService SupplierService
+@inject IDeparmentService DeparmentService
+@inject ITeamsService TeamsService
+@inject IPayMethodService PayMethodService
+@inject IVWS_LineService VWS_LineService
+@inject IBanksService BanksService
+@inject ICurrencyService CurrencyService
+@inject IInvoiceService InvoiceService
+
+
+<h1>@pagetitle</h1>
+
+<EditForm Model="@voucheraddedit" OnValidSubmit="@VoucherSave">
+     <div class="grid-container">
+        <div class="grid-child left-column">
+    <SfDropDownList DataSource="@deparments"
+                    TItem="Deparment"
+                    TValue="int"
+                    Text="DeparmentID"
+                    @bind-Value="voucheraddedit.VSHeaderDeparmentID"
+                    FloatLabelType="@FloatLabelType.Always"
+                    Placeholder="Deparment"
+                    PopupWidth="500"
+                    PopupHeight="1000"
+                    Enabled="true">
+        <DropDownListFieldSettings Value="DeparmentID" Text="DeparmentName"></DropDownListFieldSettings>
+                <DropDownListEvents TItem="Deparment" TValue="int" OnValueSelect="OnChangeDeparment"></DropDownListEvents>
+    </SfDropDownList>
+    <SfDropDownList DataSource="@teams"
+                    TItem="Teams"
+                    TValue="int"
+                    Text="TeamID"
+                    @bind-Value="voucheraddedit.VSHeaderTeamID"
+                    FloatLabelType="@FloatLabelType.Always"
+                    Placeholder="Team"
+                    PopupWidth="500"
+                    PopupHeight="1000"
+                    Enabled="true">
+        <DropDownListFieldSettings Value="TeamID" Text="TeamName"></DropDownListFieldSettings>
+                <DropDownListEvents TItem="Teams" TValue="int" OnValueSelect="OnChangeTeam"></DropDownListEvents>
+    </SfDropDownList>
+    <SfDropDownList DataSource="@suppliers"
+                    TItem="Supplier"
+                    TValue="int"
+                    Text="SupplierID"
+                    @bind-Value="voucheraddedit.VSHeaderSupplierID"
+                    FloatLabelType="@FloatLabelType.Always"
+                    Placeholder="Supplier"
+                    PopupWidth="800"
+                    PopupHeight="500"
+                    Enabled="@supplierEnabled">
+        <DropDownListFieldSettings Value="SupplierID" Text="SupplierName"></DropDownListFieldSettings>
+        <DropDownListEvents TItem="Supplier" TValue="int" OnValueSelect="OnChangeSupplier2"></DropDownListEvents>
+    </SfDropDownList>
+    <SfTextBox Enabled="true" Placeholder="Pay To Name"
+               FloatLabelType="@FloatLabelType.Always"
+                       @bind-Value="voucheraddedit.SupplierPayToName"></SfTextBox>
+    <SfDatePicker TValue="DateTime" Placeholder='Pay Date'
+                  FloatLabelType="@FloatLabelType.Always"
+                  @bind-Value="voucheraddedit.PayDate"></SfDatePicker>
+    <SfTextBox Enabled="true" Placeholder="Contact Name"
+               FloatLabelType="@FloatLabelType.Always"
+               @bind-Value="voucheraddedit.VSHeaderSupplierContact"></SfTextBox>
+               </div>
+        <div class="grid-child right-column">
+    <SfDatePicker TValue="DateTime" Placeholder='Emision Date'
+                  FloatLabelType="@FloatLabelType.Always"
+                  @bind-Value="voucheraddedit.VSHeaderVEDate"></SfDatePicker>
+    <SfNumericTextBox Enabled="false" Placeholder="Voucher Total"
+                      FloatLabelType="@FloatLabelType.Always"
+                      ShowSpinButton="false"
+                      Format="n2"
+                      ValidateDecimalOnType="true"
+                      @bind-Value="voucheraddedit.VoucherTotal"></SfNumericTextBox>
+    <SfDropDownList DataSource="@paymeths"
+                    TItem="PayMethod"
+                    TValue="int"
+                    Text="PayMethodID"
+                    @bind-Value="voucheraddedit.VSHeaderSuppPayMethodID"
+                    FloatLabelType="@FloatLabelType.Always"
+                    Placeholder="Pay Method"
+                    PopupWidth="200"
+                    PopupHeight="500"
+                    Enabled="@IsEnabled">
+        <DropDownListFieldSettings Value="PayMethodID" Text="PayMethDescription"></DropDownListFieldSettings>
+                <DropDownListEvents TItem="PayMethod" TValue="int" OnValueSelect="OnChangePayMethod"></DropDownListEvents>
+    </SfDropDownList>
+            <SfDropDownList DataSource="@banks"
+                            TItem="Banks"
+                            TValue="int"
+                            Text="BankID"
+                            @bind-Value="voucheraddedit.VSHeaderSupplierBankID"
+                            FloatLabelType="@FloatLabelType.Always"
+                            Placeholder="Bank Name"
+                            PopupWidth="750"
+                            PopupHeight="500"
+                            Enabled="@IsEnabled">
+                <DropDownListFieldSettings Value="BankID" Text="BankDescription"></DropDownListFieldSettings>
+                <DropDownListEvents TItem="Banks" TValue="int" OnValueSelect="OnChangeBank"></DropDownListEvents>
+            </SfDropDownList>
+    <SfTextBox Enabled="true" Placeholder="Bank Account"
+               FloatLabelType="@FloatLabelType.Always"
+               @bind-Value="voucheraddedit.VSHeaderSupplierBankAcc"></SfTextBox>
+            <SfDropDownList DataSource="@currency"
+                            TItem="Currency"
+                            TValue="int"
+                            Text="CurrencyID"
+                            @bind-Value="voucheraddedit.VSHeaderSupplierCID"
+                            FloatLabelType="@FloatLabelType.Always"
+                            Placeholder="Currency"
+                            PopupWidth="100"
+                            PopupHeight="200"
+                            Enabled="@IsEnabled">
+                <DropDownListFieldSettings Value="CurrencyID" Text="CurrencySymbol"></DropDownListFieldSettings>
+                <DropDownListEvents TItem="Currency" TValue="int" OnValueSelect="OnChangeCurrency"></DropDownListEvents>
+            </SfDropDownList>
+               </div>
+             </div>
+<br />
+<br />
+<br />
+<SfGrid @ref="VoucherLinesGrid"
+    DataSource="@voucherLines"
+   Toolbar="@ToolbarItems">
+    <GridColumns>
+            <GridColumn Field="@nameof(VWS_Line.VSLineInvNumber)"
+                    HeaderText="Invoice #"
+                    TextAlign="TextAlign.Left"
+                    Width="60">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Line.VSLineInvRNumber)"
+                    HeaderText="Reg #"
+                    TextAlign="TextAlign.Left"
+                    Width="15">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Line.VSLineInvoiceBuyer)"
+                    HeaderText="Buyer"
+                    TextAlign="TextAlign.Left"
+                    Width="35">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Line.VSLineInvoiceFile)"
+                    HeaderText="File #"
+                    TextAlign="TextAlign.Left"
+                    Width="35">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Line.VSLineDescription)"
+                    HeaderText="Description"
+                    TextAlign="TextAlign.Left"
+                    Width="60">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Line.VSLineInvoiceQuantity)"
+                    HeaderText="Quantity"
+                    TextAlign="TextAlign.Left"
+                    Width="30">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Line.VSLineInvoiceUnitPrice)"
+                    HeaderText="Unit Price"
+                    TextAlign="TextAlign.Left"
+                    Width="30">
+        </GridColumn>
+        <GridColumn Field="@nameof(VWS_Line.VSLineInvoiceTotal)"
+                    HeaderText="Invoice Amount"
+                    TextAlign="TextAlign.Left"
+                    Width="40">
+        </GridColumn>
+    </GridColumns>
+    <GridEvents RowSelected="RowSelectHandler" OnToolbarClick="ToolbarClickHandler" TValue="VWS_Line">
+    </GridEvents>
+    <GridAggregates>
+        <GridAggregate>
+        <GridAggregateColumns>
+            <GridAggregateColumn Field=@nameof(VWS_Line.VSLineInvoiceTotal) Type="AggregateType.Sum" Format="n4">
+                        <FooterTemplate Context="GrossContext">
+                            @{
+                                var aggregate = GrossContext as AggregateTemplateContext;
+                                <div>
+                                    <p>@aggregate.Sum</p>
+                                </div>
+                            }
+                        </FooterTemplate>
+                    </GridAggregateColumn>
+                </GridAggregateColumns>
+            </GridAggregate>
+    </GridAggregates>
+</SfGrid>
+    <br />
+    <br />
+    <div class="e-footer-content" style="text-align: center">
+        <div class="button-container">
+            <button type="submit" class="e-btn e-normal e-primary">Save</button>
+            <button type="button" class="e-btn e-normal" @onclick="@Cancel">Cancel</button>
+        </div>
+    </div>
+</EditForm>
+
+<SfDialog @ref="DialogAddeditVoucherLine" IsModal="true" Width="600px"
+    ShowCloseIcon="true" Visible="false">
+    <DialogTemplates>
+        <Header>@dialogHeaderText</Header>
+    </DialogTemplates>
+    <EditForm Model="@addeditVoucherLine" OnValidSubmit="@VoucherLineSave">
+        <SfDropDownList DataSource="@invoices"
+                        TItem="Invoice"
+                        TValue="int"
+                        Text="InvoiceID"
+                        @bind-Value="addeditVoucherLine.VSLineInvoiceID"
+                        FloatLabelType="@FloatLabelType.Always"
+                        Placeholder="Select a Invoice"
+                        Enabled="true">
+            <DropDownListFieldSettings Value="InvoiceID" Text="InvoiceNumber"></DropDownListFieldSettings>
+            <DropDownListEvents TItem="Invoice" TValue="int" OnValueSelect="OnChangeInvoice"></DropDownListEvents>
+        </SfDropDownList>
+            <SfTextBox Enabled="true" Placeholder="Buyer"
+                          FloatLabelType="@FloatLabelType.Always"
+                          @bind-Value="addeditVoucherLine.VSLineInvoiceBuyer"></SfTextBox>
+            <SfTextBox Enabled="true" Placeholder="File"
+                          FloatLabelType="@FloatLabelType.Always"
+                          @bind-Value="addeditVoucherLine.VSLineInvoiceFile"></SfTextBox>
+            <SfTextBox Enabled="true" Placeholder="Description"
+                          FloatLabelType="@FloatLabelType.Always"
+                          @bind-Value="addeditVoucherLine.VSLineDescription"></SfTextBox>
+                          <ValidationMessage For="@(() => addeditVoucherLine.VSLineDescription)"></ValidationMessage>
+        <SfNumericTextBox Enabled="true" Placeholder="Pcs Quantity"
+                          FloatLabelType="@FloatLabelType.Always"
+                          ShowSpinButton="false"
+                          Format="n0"
+                          Decimals="0"
+                          ValidateDecimalOnType="true"
+                          @bind-Value="addeditVoucherLine.VSLineInvoiceQuantity"
+                          @onfocusout="@VSLineCalc"></SfNumericTextBox>
+        <SfNumericTextBox Enabled="true" Placeholder="Unit Price"
+                          FloatLabelType="@FloatLabelType.Always"
+                          ShowSpinButton="false"
+                          Format="n4"
+                          Decimals="4"
+                          ValidateDecimalOnType="true"
+                          @bind-Value="addeditVoucherLine.VSLineInvoiceUnitPrice"
+                          @onfocusout="@VSLineCalc"></SfNumericTextBox>
+        <SfNumericTextBox Enabled="true" Placeholder="Total Amount"
+                          FloatLabelType="@FloatLabelType.Always"
+                          ShowSpinButton="false"
+                          Format="n4"
+                          Decimals="4"
+                          ValidateDecimalOnType="true"
+                          @bind-Value="addeditVoucherLine.VSLineInvoiceTotal"></SfNumericTextBox>
+
+        <br />
+        <div class="e-footer-content">
+            <div class="button-container">
+                <button type="button" class="e-btn e-normal" @onclick="@CloseDialog">Cancel</button>
+                <button type="submit" class="e-btn e-normal e-primary">Save</button>
+            </div>
+        </div>
+    </EditForm>
+</SfDialog>
+
+<WarningPage @ref="Warning" WarningHeaderMessage="@WarningHeaderMessage"
+             WarningContentMessage="@WarningContentMessage" />
+
+<style>
+    .grid-container {
+        display: grid;
+        max-width: 1500px; /* Maximum width of the whole container - in this case both columns */
+        grid-template-columns: 1fr 1fr; /* Relative width of each column (1fr 1fr is equivalent to, say, 33fr 33fr */
+        grid-gap: 75px; /* size of the gap between columns */
+    }
+
+</style>
+
+@code {
+
+}

@@ -1,0 +1,204 @@
+﻿@page "/invoice"
+@using VouchersProgram.Data.Interfaces
+@using VouchersProgram.Data.Services
+@using VouchersProgram.Data.Models
+@using Syncfusion.Blazor.Navigations
+@inject IInvoiceService InvoiceService
+@inject ISupplierService SupplierService
+@inject IExpense_AccountService Expense_AccountService
+@inject ICurrencyService CurrencyService
+
+<h3>Invoices</h3>
+<br />
+<br />
+<SfGrid DataSource="@invoices"
+    Toolbar="@ToolbarItems"
+    AllowSorting="true"
+    AllowResizing="true">
+    <GridColumns>
+        <GridColumn Field="@nameof(Invoice.InvoiceID)"
+                    HeaderText="ID #"
+                    TextAlign="TextAlign.Left"
+                    Width="35">
+        </GridColumn>
+        <GridColumn Field="@nameof(Invoice.InvoiceRecordNumber)"
+                    HeaderText="Record #"
+                    TextAlign="TextAlign.Left"
+                    Width="35">
+        </GridColumn>
+        <GridColumn Field="@nameof(Invoice.SupplierName)"
+                    HeaderText="Supplier"
+                    TextAlign="TextAlign.Left"
+                    Width="60">
+         </GridColumn>
+        <GridColumn Field="@nameof(Invoice.SupplierAccCode)"
+                        HeaderText="Supplier Account"
+                        TextAlign="TextAlign.Left"
+                        Width="35">
+        </GridColumn>
+          <GridColumn Field="@nameof(Invoice.InvoiceEmisionDate)"
+                       HeaderText="Emision Date"
+                       Format="d"
+                       Type="ColumnType.Date"
+                       TextAlign="TextAlign.Left"
+                       Width="35">
+          </GridColumn>
+        <GridColumn Field="@nameof(Invoice.InvoiceNumber)"
+                    HeaderText="Invoice Number"
+                    TextAlign="TextAlign.Center"
+                    Width="60">
+        </GridColumn>
+        <GridColumn Field="@nameof(Invoice.IvoiceFile)"
+                    HeaderText="Invoice File"
+                    TextAlign="TextAlign.Center"
+                    Width="35">
+        </GridColumn>
+        <GridColumn Field="@nameof(Invoice.InvoiceBuyer)"
+                    HeaderText="Buyer"
+                    TextAlign="TextAlign.Center"
+                    Width="35">
+        </GridColumn>
+        <GridColumn Field="@nameof(Invoice.InvoicePQty)"
+                    Format="n0"
+                    HeaderText="PCS Qty"
+                    TextAlign="TextAlign.Right"
+                    Width="30">
+        </GridColumn>
+        <GridColumn Field="@nameof(Invoice.InvoicePUnitPrice)"
+                    HeaderText="Unit Price"
+                    TextAlign="TextAlign.Right"
+                    Format="N2"
+                    Width="30">
+        </GridColumn>
+        <GridColumn Field="@nameof(Invoice.InvoiceTotal)"
+                    HeaderText="Amount"
+                    TextAlign="TextAlign.Right"
+                    Format="N2"
+                    Width="30">
+        </GridColumn>
+        <GridColumn Field="@nameof(Invoice.CurrencySymbol)"
+                    HeaderText="C"
+                    TextAlign="TextAlign.Center"
+                    Width="15">
+        </GridColumn>
+        <GridColumn Field="@nameof(Invoice.ExpenseAccountDescription)"
+                    HeaderText="Account Desc."
+                    TextAlign="TextAlign.Center"
+                    Width="50">
+        </GridColumn>
+    </GridColumns>
+    <GridEvents RowSelected="RowSelectHandler"
+                OnToolbarClick="ToolbarClickHandler" TValue="Invoice">
+    </GridEvents>
+</SfGrid>
+
+<SfDialog @ref="DialogAddEditInvoice" IsModal="true" Width="500px" ShowCloseIcon="true" Visible="false">
+    <DialogTemplates>
+        <Header> @HeaderText</Header>
+    </DialogTemplates>
+    <EditForm Model="@addeditInvoice" OnValidSubmit="@InvoiceSave">
+        <div>
+            <SfNumericTextBox Enabled="true" Placeholder="Record Number"
+                              ShowSpinButton="false"
+                       FloatLabelType="@FloatLabelType.Always"
+                       @bind-Value="addeditInvoice.InvoiceRecordNumber"></SfNumericTextBox>
+            <SfDropDownList DataSource="@suppliers"
+                            TItem="Supplier"
+                            TValue="int"
+                            Text="SupplierID"
+                            @bind-Value="addeditInvoice.InvoiceSupplierID"
+                            FloatLabelType="@FloatLabelType.Always"
+                            Placeholder="Select a Supplier"
+                            PopupWidth="200"
+                            PopupHeight="200"
+                            Enabled="true">
+                <DropDownListFieldSettings Value="SupplierID" Text="SupplierName"></DropDownListFieldSettings>
+                <DropDownListEvents TItem="Supplier" TValue="int" OnValueSelect="OnChangeSupplier"></DropDownListEvents>
+            </SfDropDownList>
+            <SfNumericTextBox Enabled="false" Placeholder="Supplier Acc. Code" Width="50"
+                              Format="#######"
+                              ShowSpinButton="false"
+                              FloatLabelType="@FloatLabelType.Always"
+                              @bind-Value="addeditInvoice.SupplierAccCode"></SfNumericTextBox>
+            <SfDatePicker TValue="DateTime" Placeholder='Invoice Date'
+                          FloatLabelType="@FloatLabelType.Always"
+                          @bind-Value="addeditInvoice.InvoiceEmisionDate"></SfDatePicker>
+            <SfTextBox Enabled="true" Placeholder="Invoice Number" Width="60"
+                       FloatLabelType="@FloatLabelType.Always"
+                          @bind-Value="addeditInvoice.InvoiceNumber"></SfTextBox>
+            <SfTextBox Enabled="true" Placeholder="Invoice File"
+                              FloatLabelType="@FloatLabelType.Always"
+                              @bind-Value="addeditInvoice.IvoiceFile"></SfTextBox>
+            <SfTextBox Enabled="true" Placeholder="Invoice Buyer"
+                              FloatLabelType="@FloatLabelType.Always"
+                              @bind-Value="addeditInvoice.InvoiceBuyer"></SfTextBox>
+            <SfNumericTextBox Enabled="true" Placeholder="Pcs Quantity"
+                              FloatLabelType="@FloatLabelType.Always"
+                              ShowSpinButton="false"
+                              Format="n0"
+                              Decimals="0"
+                              ValidateDecimalOnType="true"
+                              @bind-Value="addeditInvoice.InvoicePQty"></SfNumericTextBox>
+            <SfNumericTextBox Enabled="true" Placeholder="Unit Price"
+                              FloatLabelType="@FloatLabelType.Always"
+                              ShowSpinButton="false"
+                              Format="n2"
+                              ValidateDecimalOnType="true"
+                              @bind-Value="addeditInvoice.InvoicePUnitPrice"></SfNumericTextBox>
+            <SfNumericTextBox Enabled="true" Placeholder="Invoice Total"
+                              FloatLabelType="@FloatLabelType.Always"
+                              ShowSpinButton="false"
+                              Format="n2"
+                              ValidateDecimalOnType="true"
+                              @bind-Value="addeditInvoice.InvoiceTotal"></SfNumericTextBox>
+            <SfDropDownList DataSource="@currency"
+                            TItem="Currency"
+                            TValue="int"
+                            Text="CurrencyID"
+                            @bind-Value="addeditInvoice.InvoiceSupplierCurrencyID"
+                            FloatLabelType="FloatLabelType.Always"
+                            Placeholder="Currency"
+                            PopupWidth="200"
+                            PopupHeight="200"
+                            Enabled="false">
+                <DropDownListFieldSettings Value="CurrencyID" Text="CurrencySymbol"></DropDownListFieldSettings>
+                <DropDownListEvents TItem="Currency" TValue="int" OnValueSelect="OnChangeCurrency"></DropDownListEvents>
+            </SfDropDownList>
+            <SfDropDownList DataSource="@expense_accounts"
+                            TItem="Expense_Account"
+                            TValue="int"
+                            Text="ExpenseAccountID"
+                            @bind-Value="addeditInvoice.InvoiceExpenseAccountID"
+                            FloatLabelType="FloatLabelType.Always"
+                            Placeholder="Expense Account"
+                            PopupWidth="200"
+                            PopupHeight="200"
+                            Enabled="true">
+                <DropDownListFieldSettings Value="ExpenseAccountID" Text="ExpenseAccountDescription"></DropDownListFieldSettings>
+                <DropDownListEvents TItem="Expense_Account" TValue="int" OnValueSelect="OnChangeExpenseAcc"></DropDownListEvents>
+            </SfDropDownList>
+        </div>
+        <br /><br />
+        <div class="e-footer-content">
+            <div class="button-container">
+                <button type="button" class="e-btn e-normal" @onclick="@CloseDialog">Cancel</button>
+                <button type="submit" class="e-btn e-normal e-primary">Save</button>
+            </div>
+        </div>
+    </EditForm>
+</SfDialog>
+
+<SfDialog @ref="DeleteInvoice" IsModal="true" ShowCloseIcon="true" Visible="false" Width="500px">
+    <DialogTemplates>
+        <Header>Confirm Deletion</Header>
+        <Content>Please Confirm that you want to delete this invocie</Content>
+    </DialogTemplates>
+    <DialogButtons>
+        <DialogButton Content="Confirm" IsPrimary="true" OnClick="@ConfirmDeleteYes"></DialogButton>
+        <DialogButton Content="Cancel" IsPrimary="false" OnClick="@ConfirmDeleteNo"></DialogButton>
+    </DialogButtons>
+</SfDialog>
+
+@code {
+    
+}
